@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TP System - Dashboard</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        .chart-container {
+            position: relative;
+            width: 350px;
+            height: 350px;
+            margin: 0 auto;
+        }
+
+        .bar-chart-container {
+            position: relative;
+            height: 350px;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark px-4 d-flex justify-content-between">
+
+    <span class="navbar-brand mb-0 h1">
+        Training and Placement Management System
+    </span>
+
+    <div class="text-white">
+        Welcome, <strong>{{ session['role']|capitalize }}</strong>
+        |
+        <a href="{{ url_for('routes.logout') }}" class="btn btn-outline-light btn-sm ms-2">
+            Logout
+        </a>
+    </div>
+
+</nav>
+
+
+<div class="container mt-4">
+
+    <h2 class="text-center text-danger mb-4">Dashboard</h2>
+
+    <!-- ✅ FLASH MESSAGE HERE -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show mt-3 flash-message">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- rest of your dashboard -->
+
+
+
+    <!-- Statistic Cards -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Total Students</h6>
+                    <h3 class="fw-bold counter" data-target="{{ total_students }}">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Placed</h6>
+                    <h3 class="fw-bold text-success counter" data-target="{{ placed_students }}">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Not Placed</h6>
+                    <h3 class="fw-bold text-warning counter" data-target="{{ not_placed_students }}">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted">Placement %</h6>
+                    <h3>
+                        <span class="fw-bold text-primary counter" data-target="{{ placement_percentage }}">0</span>%
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Pie Chart -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center">
+            <h5 class="mb-3">Placement Distribution</h5>
+            <div class="chart-container">
+                <canvas id="placementChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bar Chart -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body text-center">
+            <h5 class="mb-3">Course-wise Placement</h5>
+            <div class="bar-chart-container">
+                <canvas id="courseChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+
+ <!-- Add + Export + Import + Search -->
+<div class="row mb-3 align-items-center">
+
+    <!-- Buttons -->
+    <div class="col-md-6">
+
+        <a href="{{ url_for('routes.add_student') }}" class="btn btn-primary me-2">
+            <i class="fa fa-user-plus"></i> Add Student
+        </a>
+    
+        <a href="{{ url_for('routes.export_students', search=search_query, course=course_filter, filter=current_filter) }}" class="btn btn-success me-2">
+            <i class="fa fa-download"></i> Export CSV
+        </a>
+
+        {% if search_query or course_filter != 'All' or current_filter != 'All' %}
+        <a href="{{ url_for('routes.dashboard') }}" class="btn btn-outline-danger me-2">
+            Clear Filters
+        </a>
+        {% endif %}
+    
+        <a href="{{ url_for('routes.import_students') }}" class="btn btn-dark">
+            <i class="fa fa-upload"></i> Import CSV
+        </a>
+    
+    </div>
+    <!-- Search -->
+    <div class="col-md-6">
+        <form method="GET" action="{{ url_for('routes.dashboard') }}">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Search by name">
+                <button class="btn btn-dark">Search</button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+    <div class="mb-3">
+
+        <a href="{{ url_for('routes.dashboard', filter='All', course=course_filter, search=search_query) }}"
+        class="btn btn-sm {% if current_filter == 'All' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+            All
+        </a>
+
+        <a href="{{ url_for('routes.dashboard', filter='Placed', course=course_filter, search=search_query) }}"
+        class="btn btn-sm {% if current_filter == 'Placed' %}btn-success{% else %}btn-outline-success{% endif %}">
+            Placed
+        </a>
+
+        <a href="{{ url_for('routes.dashboard', filter='Not Placed', course=course_filter, search=search_query) }}"
+        class="btn btn-sm {% if current_filter == 'Not Placed' %}btn-warning{% else %}btn-outline-warning{% endif %}">
+            Not Placed
+        </a>
+
+    </div>
+
+    <!-- Filters -->
+    <div class="mb-3">
+        <strong>Filter by Course:</strong>
+    
+        <a href="{{ url_for('routes.dashboard', course='All', filter=current_filter, search=search_query) }}"
+           class="btn btn-sm {% if course_filter == 'All' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+            All
+        </a>
+    
+        {% for course in courses %}
+        <a href="{{ url_for('routes.dashboard', course=course, filter=current_filter, search=search_query) }}"
+           class="btn btn-sm {% if course_filter == course %}btn-primary{% else %}btn-outline-primary{% endif %}">
+            {{ course }}
+        </a>
+        {% endfor %}
+    </div>
+
+
+    
+    
+    <!-- Students Table -->
+    <div class="card shadow-sm">
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover align-middle text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Course</th>
+                        <th>Status</th>
+                        <th width="160">Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for student in students.items %}
+                    <tr>
+                        <td>{{ student.name }}</td>
+                        <td>{{ student.email }}</td>
+                        <td>{{ student.course }}</td>
+                        <td>
+                            {% if student.placement_status == "Placed" %}
+                                <span class="badge bg-success px-3 py-2">Placed</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark px-3 py-2">Not Placed</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('routes.edit_student', id=student.id) }}"
+                               class="btn btn-sm btn-primary me-1">
+                               Edit
+                            </a>
+
+                            {% if session.get("role") == "admin" %}
+                            <a href="{{ url_for('routes.delete_student', id=student.id) }}"
+                            class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure you want to delete this student?');">
+                            Delete
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+            
+                    {% if students.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" 
+                           href="{{ url_for('routes.dashboard', page=students.prev_num, filter=current_filter, course=course_filter, search=search_query) }}">
+                           Previous
+                        </a>
+                    </li>
+                    {% endif %}
+            
+                    {% for page_num in students.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if students.page == page_num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_num }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link"
+                                       href="{{ url_for('routes.dashboard', page=page_num, filter=current_filter, course=course_filter, search=search_query) }}">
+                                       {{ page_num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+            
+                    {% if students.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                           href="{{ url_for('routes.dashboard', page=students.next_num, filter=current_filter, course=course_filter, search=search_query) }}">
+                           Next
+                        </a>
+                    </li>
+                    {% endif %}
+            
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Pie Chart
+    new Chart(document.getElementById('placementChart'), {
+        type: 'pie',
+        data: {
+            labels: ['Placed', 'Not Placed'],
+            datasets: [{
+                data: {{ [placed_students, not_placed_students] | tojson }},
+                backgroundColor: ['#198754', '#ffc107']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Bar Chart
+    new Chart(document.getElementById('courseChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ course_labels | tojson }},
+            datasets: [{
+                label: 'Placed Students',
+                data: {{ course_values | tojson }},
+                backgroundColor: '#0d6efd'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Animated Counters
+    const counters = document.querySelectorAll('.counter');
+
+    counters.forEach(counter => {
+        const target = +counter.getAttribute('data-target');
+        let count = 0;
+
+        const update = () => {
+            const increment = target / 50;
+
+            if (count < target) {
+                count += increment;
+                counter.innerText = Math.ceil(count);
+                setTimeout(update, 20);
+            } else {
+                counter.innerText = target;
+            }
+        };
+
+        update();
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    setTimeout(function () {
+        let alerts = document.querySelectorAll('.flash-message');
+        alerts.forEach(function(alert) {
+            alert.classList.remove('show');
+            alert.classList.add('hide');
+        });
+    }, 3000);
+});
+</script>
+<script>
+    // Save scroll position before reload
+    window.onbeforeunload = function () {
+        localStorage.setItem("scrollPosition", window.scrollY);
+    };
+
+    // Restore scroll position after reload
+    window.onload = function () {
+        const scrollPosition = localStorage.getItem("scrollPosition");
+        if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+        }
+    };
+</script>
+
+</body>
+</html>
