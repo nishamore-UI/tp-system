@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from models import Student, Admin
 from extensions import db
 from sqlalchemy import or_
-
+from flask import request, jsonify
 
 routes = Blueprint("routes", __name__)
 
@@ -26,7 +26,59 @@ def home():
         placed=placed_students,
         not_placed=not_placed_students
     )
+# --------------------------------------------------
 
+@routes.route('/api/students', methods=['GET'])
+def get_students_api():
+
+    students = Student.query.all()
+
+    result = []
+
+    for s in students:
+        result.append({
+            "id": s.id,
+            "name": s.name,
+            "email": s.email,
+            "course": s.course,
+            "placement_status": s.placement_status
+        })
+
+    return jsonify(result)
+
+# --------------------------------------------------------------
+
+@routes.route('/api/students/<int:id>', methods=['PUT'])
+def update_student_api(id):
+    student = Student.query.get(id)
+
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    data = request.get_json()
+
+    student.name = data.get('name', student.name)
+    student.email = data.get('email', student.email)
+    student.course = data.get('course', student.course)
+    student.status = data.get('status', student.status)
+
+    db.session.commit()
+
+    return jsonify({"message": "Student updated successfully"})
+
+# --------------------------------------------------------------
+
+@routes.route('/api/students/<int:id>', methods=['DELETE'])
+def delete_student_api(id):
+    student = Student.query.get(id)
+
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    db.session.delete(student)
+    db.session.commit()
+
+    return jsonify({"message": "Student deleted successfully"})
 
 # ---------------- STUDENTS ----------------
 @routes.route("/students")
