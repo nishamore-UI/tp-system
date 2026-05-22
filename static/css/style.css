@@ -1,0 +1,9 @@
+.demo-login {
+    margin-top: 25px;
+    padding: 15px;
+    border-radius: 10px;
+    background: rgba(56,189,248,0.1);
+    color: #38bdf8;
+    text-align: center;
+    line-height: 1.8;
+}
