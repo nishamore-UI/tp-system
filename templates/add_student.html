@@ -1,37 +1,86 @@
-{% extends "base.html" %}
+<body>
+    <h1 style="color:red;">TEST EDIT PAGE</h1>
+    
+    <div class="edit-container">
 
-{% block content %}
-<div class="container mt-5">
-    <h2 class="mb-4">Add New Student</h2>
+        <div class="edit-card">
 
-    <form method="POST">
+            <h2>Edit Student</h2>
 
-        <div class="mb-3">
-            <label>Name</label>
-            <input type="text" name="name" class="form-control" required>
+            <form method="POST">
+
+                <div class="form-group">
+
+                    <label>Name</label>
+
+                    <input type="text"
+                           name="name"
+                           value="{{ student.name }}"
+                           required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Email</label>
+
+                    <input type="email"
+                           name="email"
+                           value="{{ student.email }}"
+                           required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Course</label>
+
+                    <input type="text"
+                           name="course"
+                           value="{{ student.course }}"
+                           required>
+
+                </div>
+
+                <div class="form-group">
+
+                    <label>Placement Status</label>
+
+                    <select name="placement_status">
+
+                        <option value="Placed"
+                        {% if student.placement_status == "Placed" %}selected{% endif %}>
+                        Placed
+                        </option>
+
+                        <option value="Not Placed"
+                        {% if student.placement_status == "Not Placed" %}selected{% endif %}>
+                        Not Placed
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="btn-group">
+
+                    <button type="submit" class="update-btn">
+                        Update Student
+                    </button>
+
+                    <a href="{{ url_for('routes.dashboard') }}"
+                       class="cancel-btn">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
         </div>
 
-        <div class="mb-3">
-            <label>Email</label>
-            <input type="email" name="email" class="form-control" required>
-        </div>
+    </div>
 
-        <div class="mb-3">
-            <label>Course</label>
-            <input type="text" name="course" class="form-control" required>
-        </div>
-
-        <div class="mb-3">
-            <label>Placement Status</label>
-            <select name="placement_status" class="form-control" required>
-                <option value="Placed">Placed</option>
-                <option value="Not Placed">Not Placed</option>
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Add Student</button>
-        <a href="{{ url_for('routes.dashboard') }}" class="btn btn-secondary">Cancel</a>
-
-    </form>
-</div>
-{% endblock %}
+</body>

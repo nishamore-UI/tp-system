@@ -1,13 +1,18 @@
+from dotenv import load_dotenv
+import os
 from flask import Flask
 from extensions import db
 from routes import routes
 from models import Admin
 
+
+load_dotenv()
+
 app = Flask(__name__)
 
 app.secret_key = "supersecretkey"
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///tp.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 
 db.init_app(app)
 app.register_blueprint(routes)
