@@ -14,7 +14,13 @@ app.secret_key = "supersecretkey"
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_pre_ping": True,
+    "pool_recycle": 300
+}
+
 db.init_app(app)
+
 app.register_blueprint(routes)
 
 with app.app_context():

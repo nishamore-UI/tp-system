@@ -362,3 +362,4 @@ def import_students():
             return redirect(url_for("routes.dashboard"))
 
     return render_template("import_students.html")
+
